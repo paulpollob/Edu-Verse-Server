@@ -1,3 +1,4 @@
+const fs = require('fs');
 const express = require('express');
 const app = express();
 const port = process.env.PORT || 5000;
@@ -6,10 +7,22 @@ const multer = require('multer');
 const ExcelJS = require('exceljs');
 const path = require('path');
 const storage = multer.memoryStorage();
+const storage2 = multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, "./files");
+    },
+    filename: function (req, file, cb) {
+      const uniqueSuffix = Date.now();
+      cb(null, uniqueSuffix + file.originalname);
+    },
+  });
 const upload = multer({ storage: storage });
+const upld = multer({storage:storage2});
+
 
 app.use(cors());
 app.use(express.json());
+app.use("/files",express.static("files"))
 
 
 
@@ -81,6 +94,7 @@ const send = async (emails, title, code, room) => {
 
 //============================================================ mongodb connection ============================================================
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const { getApp } = require('firebase/app');
 const uri = "mongodb+srv://eduversepro:eduversePro23@cluster0.8mutjrz.mongodb.net/?retryWrites=true&w=majority";
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -212,6 +226,7 @@ app.post('/insert', upload.single('file'), async (req, res) => {
 
 //============================================================== get classroom data ============================================================
 app.post('/getAll', async (req, res) => {
+    console.log("getall called")
     const teacherID = req.body.teacherID
     // console.log
     const collection = db.collection('Class')
@@ -226,16 +241,92 @@ app.post('/getAll', async (req, res) => {
 
 //============================================================ Post Create ============================================================
 app.post('/makePost', async(req, res)=>{
-    console.log("HK called")
-    const value = req.body
-    console.log("HK: ", value)
-    // res.json({"HK":"HK"})
+    console.log("makePost called")
+    const value = req.body  
     const collection = db.collection("Post")
     const p = await collection.insertOne(value)
     console.log("Inserted!!!") 
     return res.json(p) 
 })
 //==================================================================== end ============================================================
+
+
+
+//============================================================ add User ============================================================
+app.post('/addUser', async(req, res)=>{
+    console.log("addUser called")
+    const value = req.body  
+    const { _id,name,email,password,phone,occupation,img } = value
+    const data = { _id, name, email, phone, img }
+    const collection = db.collection(occupation)
+    const p = await collection.insertOne(value)
+    console.log("Inserted!!!") 
+    return res.json(value) 
+})
+//==================================================================== end ============================================================
+
+
+
+
+
+
+
+//============================================================ add User ============================================================
+app.post('/getStClasses', async(req, res)=>{
+    console.log("getStClasses called")
+    const email = req.body.email  
+    console.log("email is: ", email)
+    if(email == null) return res.json({}) 
+    const collection = db.collection('Class')
+
+
+    const data = await collection.find( 
+        {
+            emails: { $all: [email] }
+        }
+       ).toArray()
+     
+    console.log("got!!!", data) 
+    return res.json(data) 
+})
+//==================================================================== end ============================================================
+
+
+
+
+
+//============================================================ add User ============================================================
+app.post('/getUserInfo', async(req, res)=>{
+    console.log("getUserInfo called")
+    const value = req.body  
+    console.log("HK: ", value)
+    const { _id, cllctn } = value 
+    if(!cllctn){console.log("HK no collection found!!");return res.json(cllctn)}
+    const collection = db.collection(cllctn)
+    const p = await collection.findOne({"_id":  _id})
+    console.log("got!!!", p) 
+    return res.json(p) 
+})
+//================================================================== end ============================================================
+
+
+//====================================================== add quiz points to User ====================================================
+app.post('/addQuizPoints', async(req, res)=>{
+    console.log("addQuizPoints called")
+    const { _id, occupation, value } = req.body
+    console.log(_id, occupation, value)
+    if(!occupation){console.log("HK no collection found!!");return res.json(cllctn)}
+    const collection = db.collection(occupation)
+    // const p = await collection.findOne({"_id": _id})
+    console.log("hk OK")
+    const rslt = collection.updateOne(
+        { _id: _id },
+        { $push: { quizRslt:value } }
+     ); 
+    return res.json(rslt) 
+})
+//================================================================== end ============================================================
+
 
 
 
@@ -329,8 +420,9 @@ app.post('/createQuestions', async (req, res) => {
 app.post('/getQuiz', async (req, res) => {
 
     const value = req.body
-    const collection = db.collection('Questions')
-    const p = await collection.find(value).toArray()
+    console.log("HK: ", value)
+    const collection = db.collection(value.type)
+    const p = await collection.find({"classID":value.classID}).toArray()
     console.log("HK: ", value, " hk ", p)
     res.json(p)
 })
@@ -378,8 +470,71 @@ app.post('/Check', upload.single('file'), async (req, res) => {
 
 
 
+
+
+//============================================================ Create Assignment ============================================================
+app.post('/CreateAssignment',  async (req, res) => {
+    console.log("create assignments")
+    const value = req.body 
+    const Questions = await db.collection('Asignments')
+    const p = await Questions.insertOne(value) 
+   
+
+    res.json({"status": "200", "response": p})
+
+
+});
+//============================================================ end ============================================================
+
+
+//============================================================ Create Assignment ============================================================
+app.post('/storeFile', upld.single('file'),  async (req, res) => {
+    console.log("create assignments", req.file, req.body)
+    const value = req.body 
+    value.fileName = req.file.path
+
+    const Questions = await db.collection('AsignmentsAnswer')
+    const p = await Questions.insertOne(value) 
+   
+
+    res.json({"status": "200", "response": p})
+
+
+});
+//============================================================ end ============================================================
+
+
+
+
+
+
+
+//============================================================ Get Ans ============================================================
+app.post('/getAssignmentAns',  async (req, res) => {
+
+    console.log("getAssignmentsAns called")
+    const value = req.body  
+
+    const cl = await db.collection('AsignmentsAnswer')
+    const p = await cl.find(value).toArray()
+    console.log("HK ", value, " HK ", p)
+
+    res.json({"status": "200", "response": p})
+
+
+});
+//============================================================ end ============================================================
+
+
+
+
+
+
 //============================================================ listning while accesing route ============================================================
 app.listen(port, () => {
     console.log("HK running from port no:", port);
 });
 //============================================================ end ============================================================
+
+
+ 
