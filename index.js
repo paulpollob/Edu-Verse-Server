@@ -28,7 +28,15 @@ app.use("/files",express.static("files"))
 
 
 
+app.get('/files/:filename', (req, res) => {
+    const filename = req.params.filename;
+    const filePath = path.join(__dirname, 'files', filename); // Adjust file path as needed
 
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'inline; filename=' + filename);
+    console.log("HK fileapth", filePath)
+    res.sendFile(filePath);
+});
 
 
 
@@ -231,6 +239,22 @@ app.post('/getAll', async (req, res) => {
     // console.log
     const collection = db.collection('Class')
     const p = await collection.find({ "teacherID": teacherID }).toArray()
+
+    res.json(p)
+})
+//==================================================================== end ============================================================
+
+
+
+
+//============================================================== get classroom info ============================================================
+app.post('/getClassInfo', async (req, res) => {
+    console.log("get class info called")
+    const value = req.body.classID
+    console.log("HK value: ", value)
+    const collection = db.collection('Class')
+    const p = await collection.findOne({_id: new ObjectId(value)})
+    // console.log("HK p: ", p)
 
     res.json(p)
 })
@@ -517,7 +541,7 @@ app.post('/getAssignmentAns',  async (req, res) => {
 
     const cl = await db.collection('AsignmentsAnswer')
     const p = await cl.find(value).toArray()
-    console.log("HK ", value, " HK ", p)
+    console.log("HK ", value, " HK ", p) 
 
     res.json({"status": "200", "response": p})
 
