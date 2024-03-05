@@ -9,20 +9,20 @@ const path = require('path');
 const storage = multer.memoryStorage();
 const storage2 = multer.diskStorage({
     destination: function (req, file, cb) {
-      cb(null, "./files");
+        cb(null, "./files");
     },
     filename: function (req, file, cb) {
-      const uniqueSuffix = Date.now();
-      cb(null, uniqueSuffix + file.originalname);
+        const uniqueSuffix = Date.now();
+        cb(null, uniqueSuffix + file.originalname);
     },
-  });
+});
 const upload = multer({ storage: storage });
-const upld = multer({storage:storage2});
+const upld = multer({ storage: storage2 });
 
 
 app.use(cors());
 app.use(express.json());
-app.use("/files",express.static("files"))
+app.use("/files", express.static("files"))
 
 
 
@@ -148,7 +148,7 @@ const insertOne = async (data) => {
 
 
 //============================================================ for inserting single value =======================================================================
-const insert = async(collectionName, value) => {
+const insert = async (collectionName, value) => {
     const collection = db.collection(collectionName)
     const p = await collection.insertOne(value)
     return (JSON.stringify(p))
@@ -245,7 +245,7 @@ app.post('/getClassInfo', async (req, res) => {
     const value = req.body.classID
     console.log("HK value: ", value)
     const collection = db.collection('Class')
-    const p = await collection.findOne({_id: new ObjectId(value)})
+    const p = await collection.findOne({ _id: new ObjectId(value) })
     // console.log("HK p: ", p)
 
     res.json(p)
@@ -256,28 +256,28 @@ app.post('/getClassInfo', async (req, res) => {
 
 
 //============================================================ Post Create ============================================================
-app.post('/makePost', async(req, res)=>{
+app.post('/makePost', async (req, res) => {
     console.log("makePost called")
-    const value = req.body  
+    const value = req.body
     const collection = db.collection("Post")
     const p = await collection.insertOne(value)
-    console.log("Inserted!!!") 
-    return res.json(p) 
+    console.log("Inserted!!!")
+    return res.json(p)
 })
 //==================================================================== end ============================================================
 
 
 
 //============================================================ add User ============================================================
-app.post('/addUser', async(req, res)=>{
+app.post('/addUser', async (req, res) => {
     console.log("addUser called")
-    const value = req.body  
-    const { _id,name,email,password,phone,occupation,img } = value
+    const value = req.body
+    const { _id, name, email, password, phone, occupation, img } = value
     const data = { _id, name, email, phone, img }
     const collection = db.collection(occupation)
     const p = await collection.insertOne(value)
-    console.log("Inserted!!!") 
-    return res.json(value) 
+    console.log("Inserted!!!")
+    return res.json(value)
 })
 //==================================================================== end ============================================================
 
@@ -288,22 +288,22 @@ app.post('/addUser', async(req, res)=>{
 
 
 //============================================================ add User ============================================================
-app.post('/getStClasses', async(req, res)=>{
+app.post('/getStClasses', async (req, res) => {
     console.log("getStClasses called")
-    const email = req.body.email  
+    const email = req.body.email
     console.log("email is: ", email)
-    if(email == null) return res.json({}) 
+    if (email == null) return res.json({})
     const collection = db.collection('Class')
 
 
-    const data = await collection.find( 
+    const data = await collection.find(
         {
             emails: { $all: [email] }
         }
-       ).toArray()
-     
-    console.log("got!!!", data) 
-    return res.json(data) 
+    ).toArray()
+
+    console.log("got!!!", data)
+    return res.json(data)
 })
 //==================================================================== end ============================================================
 
@@ -312,34 +312,34 @@ app.post('/getStClasses', async(req, res)=>{
 
 
 //============================================================ add User ============================================================
-app.post('/getUserInfo', async(req, res)=>{
+app.post('/getUserInfo', async (req, res) => {
     console.log("getUserInfo called")
-    const value = req.body  
+    const value = req.body
     console.log("HK: ", value)
-    const { _id, cllctn } = value 
-    if(!cllctn){console.log("HK no collection found!!");return res.json(cllctn)}
+    const { _id, cllctn } = value
+    if (!cllctn) { console.log("HK no collection found!!"); return res.json(cllctn) }
     const collection = db.collection(cllctn)
-    const p = await collection.findOne({"_id":  _id})
-    console.log("got!!!", p) 
-    return res.json(p) 
+    const p = await collection.findOne({ "_id": _id })
+    console.log("got!!!", p)
+    return res.json(p)
 })
 //================================================================== end ============================================================
 
 
 //====================================================== add quiz points to User ====================================================
-app.post('/addQuizPoints', async(req, res)=>{
+app.post('/addQuizPoints', async (req, res) => {
     console.log("addQuizPoints called")
     const { _id, occupation, value } = req.body
     console.log(_id, occupation, value)
-    if(!occupation){console.log("HK no collection found!!");return res.json(cllctn)}
+    if (!occupation) { console.log("HK no collection found!!"); return res.json(cllctn) }
     const collection = db.collection(occupation)
     // const p = await collection.findOne({"_id": _id})
     console.log("hk OK")
     const rslt = collection.updateOne(
         { _id: _id },
-        { $push: { quizRslt:value } }
-     ); 
-    return res.json(rslt) 
+        { $push: { quizRslt: value } }
+    );
+    return res.json(rslt)
 })
 //================================================================== end ============================================================
 
@@ -347,22 +347,21 @@ app.post('/addQuizPoints', async(req, res)=>{
 
 
 //============================================================ comment create ============================================================
-app.post('/makeComment', async(req, res)=>
-{
+app.post('/makeComment', async (req, res) => {
     const _id = req.body._id
     const cmnt = req.body.cmnt
     const userID = req.body.userID
     const time = req.body.time
     const occupation = req.body.occupation
-    const value = {_id, cmnt, userID, occupation, time}
+    const value = { _id, cmnt, userID, occupation, time }
     console.log("HK: ", value)
     const collection = db.collection("Post")
     // collection.updateOne()
     const rslt = collection.updateOne(
         { _id: new ObjectId(_id) },
         { $push: { comment: value } }
-     );
-     return res.json(rslt)
+    );
+    return res.json(rslt)
 })
 //============================================================ end ============================================================
 
@@ -370,16 +369,15 @@ app.post('/makeComment', async(req, res)=>
 
 
 //============================================================ get comments ============================================================
-app.post('/getComments', async(req, res)=>
-{
-    const _id = req.body   
+app.post('/getComments', async (req, res) => {
+    const _id = req.body
     const collection = db.collection("Post")
     // collection.updateOne()
     const rslt = collection.updateOne(
         { _id: new ObjectId(_id) },
         { $push: { comment: value } }
-     );
-     return res.json(rslt)
+    );
+    return res.json(rslt)
 })
 //============================================================ end ============================================================
 
@@ -438,7 +436,7 @@ app.post('/getQuiz', async (req, res) => {
     const value = req.body
     console.log("HK: ", value)
     const collection = db.collection(value.type)
-    const p = await collection.find({"classID":value.classID}).toArray()
+    const p = await collection.find({ "classID": value.classID }).toArray()
     console.log("HK: ", value, " hk ", p)
     res.json(p)
 })
@@ -489,14 +487,14 @@ app.post('/Check', upload.single('file'), async (req, res) => {
 
 
 //============================================================ Create Assignment ============================================================
-app.post('/CreateAssignment',  async (req, res) => {
+app.post('/CreateAssignment', async (req, res) => {
     console.log("create assignments")
-    const value = req.body 
+    const value = req.body
     const Questions = await db.collection('Asignments')
-    const p = await Questions.insertOne(value) 
-   
+    const p = await Questions.insertOne(value)
 
-    res.json({"status": "200", "response": p})
+
+    res.json({ "status": "200", "response": p })
 
 
 });
@@ -504,16 +502,16 @@ app.post('/CreateAssignment',  async (req, res) => {
 
 
 //============================================================ Create Assignment ============================================================
-app.post('/storeFile', upld.single('file'),  async (req, res) => {
+app.post('/storeFile', upld.single('file'), async (req, res) => {
     console.log("create assignments", req.file, req.body)
-    const value = req.body 
+    const value = req.body
     value.fileName = req.file.path
 
     const Questions = await db.collection('AsignmentsAnswer')
-    const p = await Questions.insertOne(value) 
-   
+    const p = await Questions.insertOne(value)
 
-    res.json({"status": "200", "response": p})
+
+    res.json({ "status": "200", "response": p })
 
 
 });
@@ -526,21 +524,64 @@ app.post('/storeFile', upld.single('file'),  async (req, res) => {
 
 
 //============================================================ Get Ans ============================================================
-app.post('/getAssignmentAns',  async (req, res) => {
+app.post('/getAssignmentAns', async (req, res) => {
 
     console.log("getAssignmentsAns called")
-    const value = req.body  
+    const value = req.body
 
     const cl = await db.collection('AsignmentsAnswer')
     const p = await cl.find(value).toArray()
-    console.log("HK ", value, " HK ", p) 
+    console.log("HK ", value, " HK ", p)
 
-    res.json({"status": "200", "response": p})
+    res.json({ "status": "200", "response": p })
 
 
 });
 //============================================================ end ============================================================
 
+
+
+
+
+
+//============================================================ provide Assignments points ============================================================
+app.post('/provideAssignmentsPoints', async (req, res) => {
+
+    console.log("provideAssignmentsPoints called ", req.body.id, req.body.points) 
+    const _id = new ObjectId(req.body.id) 
+    const points = req.body.points
+
+    const cl = await db.collection('AsignmentsAnswer')
+    const p = await cl.updateOne(
+        {_id},
+        { 
+            $set: {points}
+        }
+    ) 
+
+    res.json({ "status": "200", "response": p })
+
+
+});
+//============================================================ end ============================================================
+
+
+
+
+//============================================================ question choosen by ai ============================================================
+app.post('/provideAssignmentsPoints', async (req, res) => {
+
+    console.log("provideAssignmentsPoints called ")  
+    const value = req.body
+
+    const cl = await db.collection('AiQuestion')
+    const p = await cl.insertOne(value) 
+
+    res.json({ "status": "200", "response": p })
+
+
+});
+//============================================================ end ============================================================
 
 
 
@@ -553,4 +594,3 @@ app.listen(port, () => {
 //============================================================ end ============================================================
 
 
- 
