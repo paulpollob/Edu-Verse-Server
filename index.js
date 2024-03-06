@@ -569,13 +569,79 @@ app.post('/provideAssignmentsPoints', async (req, res) => {
 
 
 //============================================================ question choosen by ai ============================================================
-app.post('/provideAssignmentsPoints', async (req, res) => {
+app.post('/AiQuestion', async (req, res) => {
 
     console.log("provideAssignmentsPoints called ")  
     const value = req.body
 
+    console.log("HK: value: ", value)
+    const q = [];
+
+    const d = await fetch('http://localhost:8000/mcq_Gendoc', {
+            method: 'POST',
+            body: JSON.stringify(value),
+            headers: { 'Content-Type': 'application/json' },
+        })
+            .then(res => res.json())
+            .then(data => {
+                console.log("HK response data: ", data) 
+                
+                for(i in data)
+                {
+                    q.push(data[i])
+                }
+                console.log("HK data is: ", q)
+                
+            })
+            console.log("HK: ", d)
+            res.json({"value":q})
+
+    // const cl = await db.collection('AiQuestion')
+    // const p = await cl.insertOne(value) 
+
+    // res.json(value)
+    // res.json({ "status": "200", "response": p })
+
+
+});
+//============================================================ end ============================================================
+
+
+
+
+//============================================================ question choosen by ai ============================================================
+app.post('/AiQuestionStore', async (req, res) => {
+
+    console.log("ai question store called ")  
+    const value = req.body
+
+    console.log("HK: value: ", value)
+
+    
     const cl = await db.collection('AiQuestion')
     const p = await cl.insertOne(value) 
+
+    res.json({ "status": "200", "response": p })
+
+
+});
+//============================================================ end ============================================================
+
+
+
+
+//============================================================ get question choosen by ai ============================================================
+app.post('/AiQuestionGet', async (req, res) => {
+
+    console.log(" get ai question get called ")  
+    const value = req.body
+
+    console.log("HK: value: ", value)
+
+    
+    const cl = await db.collection('AiQuestion')
+    const p = await (cl.find({ "classID": '65dd027ef2b5052fc1bc9be6' })).toArray()
+    console.log("HK data is: ", p)
 
     res.json({ "status": "200", "response": p })
 
